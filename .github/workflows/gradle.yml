@@ -13,53 +13,72 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Cache Previous Coverage Report
+        id: cache-coverage
+        uses: actions/cache@v3
+        with:
+          path: coverage-cache
+          key: coverage-${{ github.ref }}
+          restore-keys: |
+            coverage-
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-      
-      - name: Fetch previous coverage
-        id: previous-coverage
-        run: |
-          echo "Downloading previous coverage badges..."
-          PREV_LINES=$(curl -s https://raw.githubusercontent.com/${{ github.repository }}/badges/jacoco.svg | grep -oP '(?<=>)[0-9]+(?=%)' || echo "100")
-          PREV_BRANCHES=$(curl -s https://raw.githubusercontent.com/${{ github.repository }}/badges/jacoco-branches.svg | grep -oP '(?<=>)[0-9]+(?=%)' || echo "100")
-          echo "prev_lines=$PREV_LINES" >> $GITHUB_OUTPUT
-          echo "prev_branches=$PREV_BRANCHES" >> $GITHUB_OUTPUT
-          echo "Previous coverage: Lines=$PREV_LINES%, Branches=$PREV_BRANCHES%"
 
       - name: Setting Permissions
         run: chmod a+x gradlew
-      - name: Build and Test with Coverage
+
+      - name: Build with Gradle
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
-          arguments: build test jacocoTestReport
+          arguments: build
 
-      - name: Generate JaCoCo Badges
-        uses: cicirello/jacoco-badge-generator@v2.9.0
+      - name: Run Test Coverage
+        run: ./gradlew jacocoTestReport
+
+      - name: Save Coverage Report
+        run: |
+          mkdir -p coverage-cache
+          cp build/reports/jacoco/test/jacocoTestReport.csv coverage-cache/coverage.csv
+
+      - name: Compare Coverage
+        run: |
+          if [ -f coverage-cache/coverage.csv ]; then
+            echo "Previous coverage found. Comparing..."
+            PREVIOUS_BRANCH_COVERAGE=$(awk -F ',' '$1 == "BRANCH" {print $4}' coverage-cache/coverage.csv)
+            CURRENT_BRANCH_COVERAGE=$(awk -F ',' '$1 == "BRANCH" {print $4}' build/reports/jacoco/test/jacocoTestReport.csv)
+
+            echo "Previous Branch Coverage: $PREVIOUS_BRANCH_COVERAGE%"
+            echo "Current Branch Coverage: $CURRENT_BRANCH_COVERAGE%"
+
+            if (( $(echo "$CURRENT_BRANCH_COVERAGE < $PREVIOUS_BRANCH_COVERAGE" | bc -l) )); then
+              echo "Branch coverage decreased. Failing the build."
+              exit 1
+            fi
+          else
+            echo "No previous coverage data found. Skipping comparison."
+          fi
+
+      - name: Cache Updated Coverage Report
+        uses: actions/cache@v3
         with:
-          jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
-          generate-branches-badge: true
-          generate-lines-badge: true
-          fail-if-branches-less-than: ${{ steps.previous-coverage.outputs.prev_branches }}
-          fail-if-lines-less-than: ${{ steps.previous-coverage.outputs.prev_lines }}
+          path: coverage-cache
+          key: coverage-${{ github.ref }}
 
   build_and_publish_docker_image:
     name: Publish to Docker Hub
     runs-on: ubuntu-latest
     needs: [build_and_test]
-    if: github.ref == 'refs/heads/master'
 
     steps:
       - uses: actions/checkout@v3
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: ${{ secrets.DOCKER_REPO }}:latest
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build Container image
+        run: docker build -t ${{ secrets.DOCKER_REPO }}:latest .
+      - name: Publish Docker image
+        run: docker push ${{ secrets.DOCKER_REPO }}
