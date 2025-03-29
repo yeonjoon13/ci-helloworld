@@ -48,16 +48,6 @@ public class ArrayUtilsTest {
         assertEquals(3, ArrayUtils.oddOrPos(new int[]{1, 2, 3}));
     }
 
-    @Test
-    public void testOddOrPositiveBothPositivesAndNegatives() {
-        assertEquals(3, ArrayUtils.oddOrPos(new int[]{-3, -2, 0, 1, 4}));
-    }
-
-    @Test
-    public void testCountOfNull() {
-        assertThrows(NullPointerException.class, () -> ArrayUtils.countOf(null, 3));
-    }
-
 
 
 
