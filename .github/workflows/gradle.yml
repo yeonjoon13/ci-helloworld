@@ -37,10 +37,9 @@ jobs:
           jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
           generate-branches-badge: true
           fail-on-coverage-decrease: true  
-          fail-on-branches-decrease: true  
+          fail-on-branches-decrease: true 
           coverage-label: line coverage
           branches-label: branch coverage
-          interval: 1
           on-missing-report: fail
 
   deploy:
