@@ -24,11 +24,9 @@ jobs:
         id: previous-coverage
         run: |
           echo "Downloading previous coverage badges..."
-          PREV_COVERAGE=$(curl -s https://raw.githubusercontent.com/${{ github.repository }}/badges/jacoco.svg | grep -oP '(?<=>)[0-9]+(?=%)' || echo "100")
-          PREV_BRANCHES=$(curl -s https://raw.githubusercontent.com/${{ github.repository }}/badges/jacoco-branches.svg | grep -oP '(?<=>)[0-9]+(?=%)' || echo "100")
-          echo "prev_coverage=$PREV_COVERAGE" >> $GITHUB_OUTPUT
-          echo "prev_branches=$PREV_BRANCHES" >> $GITHUB_OUTPUT
-          echo "Previous coverage: $PREV_COVERAGE%, Branches: $PREV_BRANCHES%"
+          curl -s https://raw.githubusercontent.com/${{ github.repository }}/badges/jacoco.svg -o current_coverage.svg || true
+          curl -s https://raw.githubusercontent.com/${{ github.repository }}/badges/jacoco-branches.svg -o current_branches.svg || true
+          echo "Previous coverage badges downloaded"
 
       - name: Setting Permissions
         run: chmod a+x gradlew
@@ -42,10 +40,8 @@ jobs:
         with:
           jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
           generate-branches-badge: true
-          fail-if-coverage-less-than: ${{ steps.previous-coverage.outputs.prev_coverage }}
-          fail-if-branches-less-than: ${{ steps.previous-coverage.outputs.prev_branches }}
-          fail-on-coverage-decrease: true
-          fail-on-branches-decrease: true
+          fail-on-coverage-decrease: true  
+          fail-on-branches-decrease: true  
 
   build_and_publish_docker_image:
     name: Publish to Docker Hub
