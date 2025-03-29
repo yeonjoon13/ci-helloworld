@@ -84,4 +84,34 @@ public class ArrayUtilsTest {
     public void testOddOrPosZero() {
         assertEquals(0, ArrayUtils.oddOrPos(new int[]{0}));
     }
+
+    @Test
+    public void testOddOrPosOnlyOddNegatives() {
+        assertEquals(2, ArrayUtils.oddOrPos(new int[]{-3, -5}));
+    }
+
+    @Test
+    public void testOddOrPosOnlyEvenPositives() {
+        assertEquals(2, ArrayUtils.oddOrPos(new int[]{2, 4}));
+    }
+
+    @Test
+    public void testOddOrPosOnlyEvenNegatives() {
+        assertEquals(0, ArrayUtils.oddOrPos(new int[]{-2, -4}));
+    }
+
+    @Test
+    public void testOddOrPosOnlyOddPositives() {
+        assertEquals(2, ArrayUtils.oddOrPos(new int[]{1, 3}));
+    }
+
+    @Test
+    public void testFindLastExistsLastElement() {
+        assertEquals(2, ArrayUtils.findLast(new int[]{2, 3, 2}, 2));
+    }
+
+    @Test
+    public void testFindLastExistsMiddleElement() {
+        assertEquals(1, ArrayUtils.findLast(new int[]{2, 3, 2}, 3));
+    }
 }
