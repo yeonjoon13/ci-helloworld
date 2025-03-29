@@ -6,7 +6,7 @@ public class ArrayUtilsTest {
 
     @Test
     public void testFindLastNull() {
-        // Do not execute fault
+        // Do not execute fault c
         assertThrows(NullPointerException.class, () -> {ArrayUtils.findLast(null, 3);});
     }
 
