@@ -44,7 +44,7 @@ jobs:
           on-missing-report: fail
       
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2 
         with:
           name: jacoco-report
           path: build/reports/jacoco/
