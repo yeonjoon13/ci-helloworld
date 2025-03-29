@@ -37,8 +37,6 @@ public class ArrayUtilsTest {
 
     @Test
     public void testOddOrPosAllPositives() {
-        // Any nonempty x with only non-negative elements works, because the first part of the
-        // compound if-test is not necessary unless the value is negative.
         assertEquals(3, ArrayUtils.oddOrPos(new int[]{1, 2, 3}));
     }
 
@@ -47,5 +45,43 @@ public class ArrayUtilsTest {
         assertEquals(3, ArrayUtils.oddOrPos(new int[]{-3, -2, 0, 1, 4}));
     }
 
+    @Test
+    public void testCountOfNull() {
+        assertThrows(NullPointerException.class, () -> ArrayUtils.countOf(null, 3));
+    }
 
+    @Test
+    public void testCountOfEmpty() {
+        assertEquals(0, ArrayUtils.countOf(new int[]{}, 3));
+    }
+
+    @Test
+    public void testCountOfNonExistent() {
+        assertEquals(0, ArrayUtils.countOf(new int[]{1, 2}, 3));
+    }
+
+    @Test
+    public void testCountOfSingleOccurrence() {
+        assertEquals(1, ArrayUtils.countOf(new int[]{1, 2, 3}, 2));
+    }
+
+    @Test
+    public void testCountOfMultipleOccurrences() {
+        assertEquals(3, ArrayUtils.countOf(new int[]{1, 2, 2, 3, 2}, 2));
+    }
+
+    @Test
+    public void testOddOrPosAllNegatives() {
+        assertEquals(1, ArrayUtils.oddOrPos(new int[]{-3, -2, -4}));
+    }
+
+    @Test
+    public void testOddOrPosMixed() {
+        assertEquals(2, ArrayUtils.oddOrPos(new int[]{-3, 0, 1}));
+    }
+
+    @Test
+    public void testOddOrPosZero() {
+        assertEquals(0, ArrayUtils.oddOrPos(new int[]{0}));
+    }
 }
